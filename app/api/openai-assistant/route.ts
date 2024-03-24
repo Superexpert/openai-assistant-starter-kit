@@ -1,7 +1,11 @@
 import {NextRequest, NextResponse} from 'next/server'
 import OpenAI from 'openai'
 
-
+// this enables Edge Functions in Vercel
+// see https://vercel.com/blog/gpt-3-app-next-js-vercel-edge-functions
+export const config = {
+    runtime: "edge",
+};
 
 // post a new message and stream OpenAI Assistant response
 export async function POST(request:NextRequest) {
