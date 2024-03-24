@@ -1,9 +1,9 @@
 import {NextRequest, NextResponse} from 'next/server'
 import OpenAI from 'openai'
 
-// const ASSISTANT_ID = "asst_gx3Htc0gLVNlpBQKLoefkXZZ";
 
-// post a new message and return thread of messages
+
+// post a new message and stream OpenAI Assistant response
 export async function POST(request:NextRequest) {
     // parse message from post
     const newMessage = await request.json();
@@ -27,48 +27,46 @@ export async function POST(request:NextRequest) {
     );
 
     // create a run
-    let run = await openai.beta.threads.runs.create(
-        newMessage.threadId,
-        { 
-          assistant_id: newMessage.assistantId
-        }
+    const run = openai.beta.threads.runs.createAndStream(
+        newMessage.threadId, 
+        {assistant_id: newMessage.assistantId, stream:true}
+    );
+    
+
+    const stream = run.toReadableStream();
+    return new Response(stream);
+}
+
+// get all of the OpenAI Assistant messages associated with a thread
+export async function GET(request:NextRequest) {
+    // get thread id
+    const searchParams = request.nextUrl.searchParams;
+    const threadId = searchParams.get("threadId");
+
+    if (threadId == null) {
+        throw Error("Missing threadId");
+    }
+
+    // create OpenAI client
+    const openai = new OpenAI();
+
+    // get thread and messages
+    const threadMessages = await openai.beta.threads.messages.list(
+        threadId
     );
 
-    // wait patiently for a response
-    while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for 1/2 second
-        run = await openai.beta.threads.runs.retrieve(
-          run.thread_id,
-          run.id
-        );
-    }
-
-    // get all of the messages
-    let messageList;
-    if (run.status === 'completed') {
-        messageList = await openai.beta.threads.messages.list(
-          run.thread_id
-        );
-    } else {
-        console.log(run.status);
-    }
-
-    // remove extra info from the messages
-    const cleanMessages = messageList?.data.map(m => {
+    // only transmit the data that we need
+    const cleanMessages = threadMessages.data.map(m => {
         return {
             id: m.id,
-            role : m.role,
-            content: m.content[0].text.value
-        }
+            role: m.role,
+            content: m.content[0].text.value,
+        };
     });
 
-    // reverse the order of the messages
-    cleanMessages?.reverse();
+    // reverse chronology
+    cleanMessages.reverse();
 
-    // return messages as JSON
-    return Response.json({
-        threadId: newMessage.threadId,
-        messages: cleanMessages,
-    });
-
+    // return back to client
+    return NextResponse.json(cleanMessages);
 }
