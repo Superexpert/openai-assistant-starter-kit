@@ -6,7 +6,8 @@ import Markdown from 'react-markdown';
 
 export default function OpenAIAssistant({
     assistantId,
-    greeting = "I am a helpful chat assistant. How can I help you?"
+    greeting = "I am a helpful chat assistant. How can I help you?",
+    messageLimit = 10,
 }) {
     const [isLoading, setIsLoading] = useState(false);
     const [threadId, setThreadId] = useState();
@@ -14,7 +15,7 @@ export default function OpenAIAssistant({
     const [messages, setMessages] = useState([]);
     const [streamingMessage, setStreamingMessage] = useState({
         role: "assistant",
-        content: "Thinking...",
+        content: "_Thinking..._",
     });
 
     // set default greeting Message
@@ -29,7 +30,7 @@ export default function OpenAIAssistant({
         // clear streaming message
         setStreamingMessage({
             role: "assistant",
-            content: "Thinking...",
+            content: "_Thinking..._",
         });
 
         // add busy indicator
@@ -84,7 +85,6 @@ export default function OpenAIAssistant({
                 switch (serverEvent.event) {
                     // create new message
                     case "thread.message.created":
-                        console.log(serverEvent);
                         newThreadId = serverEvent.data.thread_id;
                         setThreadId(serverEvent.data.thread_id);
                         break;
@@ -103,7 +103,10 @@ export default function OpenAIAssistant({
         }
 
         // refetch all of the messages from the OpenAI Assistant thread
-        const messagesResponse = await fetch("/api/openai-assistant?" + new URLSearchParams({threadId: newThreadId}));
+        const messagesResponse = await fetch("/api/openai-assistant?" + new URLSearchParams({
+            threadId: newThreadId,
+            messageLimit: messageLimit,
+        }));
         const allMessages = await messagesResponse.json();
         setMessages(allMessages);
 

@@ -42,9 +42,14 @@ export async function GET(request:NextRequest) {
     // get thread id
     const searchParams = request.nextUrl.searchParams;
     const threadId = searchParams.get("threadId");
+    const messageLimit = searchParams.get("messageLimit");
 
     if (threadId == null) {
         throw Error("Missing threadId");
+    }
+
+    if (messageLimit == null) {
+        throw Error("Missing messageLimit");
     }
 
     // create OpenAI client
@@ -52,7 +57,8 @@ export async function GET(request:NextRequest) {
 
     // get thread and messages
     const threadMessages = await openai.beta.threads.messages.list(
-        threadId
+        threadId,
+        {limit: parseInt(messageLimit)},
     );
 
     // only transmit the data that we need
@@ -60,7 +66,8 @@ export async function GET(request:NextRequest) {
         return {
             id: m.id,
             role: m.role,
-            content: m.content[0].text.value,
+            content: m.content[0].type == "text" ? m.content[0].text.value : "",
+            createdAt: m.created_at,
         };
     });
 
