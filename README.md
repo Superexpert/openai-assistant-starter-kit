@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# OpenAI Assistant Starter Kit
 
-## Getting Started
+Try the live version of this application by visiting:
 
-First, run the development server:
+[OpenAI Assistant Starter Kit](https://openai-assistant-starter-kit.vercel.app/)
+
+![screen capture](screen-capture.png)
+
+
+The **OpenAI Assistant Starter Kit** is a fully-functional OpenAI chat application that illustrates:
+
+* Streaming OpenAI Assistant responses from the server to deliver realtime responses.
+* Customizing the appearance and behavior of your OpenAI chat application.
+* Handling a long thread of messages without losing context.
+* Designing an OpenAI app to work on both mobile and desktop.
+
+This Starter Kit was built using NextJS + ReactJS + TypeScript + OpenAI. 
+
+
+
+## Downloading and Running the Code Locally
+
+Complete these three steps to download and run the **OpenAI Assistant Starter Kit** locally.
+
+First, create a new NextJS app that uses the **OpenAI Assistant Starter Kit** as a template:
 
 ```bash
+npx create-next-app@latest openai-assistant-starter-kit --use-npm --example "https://github.com/Superexpert/openai-assistant-starter-kit"
+```
+
+Second, ensure that you have configured an OpenAI API Key on your computer. You can run the following command from Terminal in MacOS:
+
+```bash
+nano ~/.zshrc
+```
+Add your OpenAI API Key:
+```
+export OPENAI_API_KEY='your-api-key-here'
+```
+And then hit Ctrl+O to write the changes, followed by Ctrl+X to close the editor. Restart Terminal so it can pick up on the new environment variable.
+
+Finally, run the app by entering the following command in Terminal:
+
+```
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
 ## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+To learn more about building OpenAI applications, consider hiring [Superexpert Training](https://superexpert.com) to provide an OpenAI workshop for your company.
