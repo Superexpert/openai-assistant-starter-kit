@@ -1,46 +1,42 @@
 import {NextRequest, NextResponse} from 'next/server'
 import OpenAI from 'openai'
 
-
-
-
+// const ASSISTANT_ID = "asst_gx3Htc0gLVNlpBQKLoefkXZZ";
 
 // post a new message and return thread of messages
 export async function POST(request:NextRequest) {
     // parse message from post
-    const message = await request.json();
+    const newMessage = await request.json();
 
     // create OpenAI client
     const openai = new OpenAI();
 
     // if no thread id then create a new openai thread
-    if (message.threadId == null) {
-        console.log("no thread id");
+    if (newMessage.threadId == null) {
         const thread = await openai.beta.threads.create();
-        message.threadId = thread.id;
+        newMessage.threadId = thread.id;
     }
-    console.log("threadId=" + message.threadId);
 
     // add new message to thread
-    const newMessage = await openai.beta.threads.messages.create(
-        message.threadId,
+    await openai.beta.threads.messages.create(
+        newMessage.threadId,
         {
             role: "user",
-            content: message.content
+            content: newMessage.content
         }
     );
 
     // create a run
     let run = await openai.beta.threads.runs.create(
-        message.threadId,
+        newMessage.threadId,
         { 
-          assistant_id: ASSISTANT_ID
+          assistant_id: newMessage.assistantId
         }
     );
 
     // wait patiently for a response
     while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for 1 second
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for 1/2 second
         run = await openai.beta.threads.runs.retrieve(
           run.thread_id,
           run.id
@@ -53,14 +49,11 @@ export async function POST(request:NextRequest) {
         messageList = await openai.beta.threads.messages.list(
           run.thread_id
         );
-        // for (const message of messageList.data.reverse()) {
-        //   console.log(`${message.role} > ${message.content[0].text.value}`);
-        // }
-      } else {
+    } else {
         console.log(run.status);
-      }
+    }
 
-
+    // remove extra info from the messages
     const cleanMessages = messageList?.data.map(m => {
         return {
             id: m.id,
@@ -72,8 +65,9 @@ export async function POST(request:NextRequest) {
     // reverse the order of the messages
     cleanMessages?.reverse();
 
+    // return messages as JSON
     return Response.json({
-        threadId: message.threadId,
+        threadId: newMessage.threadId,
         messages: cleanMessages,
     });
 

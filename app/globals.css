@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -21,4 +22,40 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+
+/* openai CSS */
+.openai-text p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+
+.openai-text h1 {
+  font-size: large;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.openai-text h2 {
+  font-size: large;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+
+.openai-text h3 {
+  font-size: large;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.openai-text code {
+  font-size: small;
+  padding: 1rem;
+  overflow-x: auto;
+  display: block;
+  background-color: black;
+  color: white;
 }

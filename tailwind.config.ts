@@ -14,12 +14,7 @@ const config: Config = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
-  },
-  variants: {
-    extend: {
-      opacity: ['disabled'],
-    }
-  },
+  },  
   plugins: [],
 };
 export default config;
