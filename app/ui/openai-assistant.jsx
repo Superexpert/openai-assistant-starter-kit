@@ -81,7 +81,7 @@ export default function OpenAIAssistant({
             // process each event
             for (const strServerEvent of strServerEvents) {
                 const serverEvent = JSON.parse(strServerEvent);
-                //console.log(serverEvent);
+                // console.log(serverEvent);
                 switch (serverEvent.event) {
                     // create new message
                     case "thread.message.created":

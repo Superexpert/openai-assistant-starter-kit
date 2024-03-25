@@ -16,7 +16,13 @@ The **OpenAI Assistant Starter Kit** is a fully-functional OpenAI chat applicati
 
 This Starter Kit was built using NextJS + ReactJS + TypeScript + OpenAI. 
 
+## Configure Your Assistant
 
+Before you can use this Starter Kit, you must first configure an OpenAI Assistant by visiting the [OpenAI Playground](https://platform.openai.com/playground?mode=assistant). Create a new OpenAI Assistant by entering an Assistant name, instructions, and model.
+
+![screen capture](create-new-assistant.png)
+
+After you create your new Assistant, make note of the Assistant Id. You'll need this Id to build a UI for your Assistant using the Starter Kit. 
 
 ## Downloading and Running the Code Locally
 
@@ -38,6 +44,16 @@ Add your OpenAI API Key:
 export OPENAI_API_KEY='your-api-key-here'
 ```
 And then hit Ctrl+O to write the changes, followed by Ctrl+X to close the editor. Restart Terminal so it can pick up on the new environment variable.
+
+Next, you need to add your Assistant Id to the Starter Kit. Open the app/page.tsx file and modify the assistantId prop associated with the OpenAIAssistant ReactJS component:
+
+```
+<OpenAIAssistant 
+    assistantId="asst_gx3Htc0gLVNlpBQKLoefkXZZ"
+    greeting="I am a helpful chat assistant. How can I help you?"
+    messageLimit={10}
+/>
+```
 
 Finally, run the app by entering the following command in Terminal:
 
