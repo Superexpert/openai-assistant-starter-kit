@@ -34,6 +34,12 @@ First, create a new NextJS app that uses the **OpenAI Assistant Starter Kit** as
 npx create-next-app@latest openai-assistant-starter-kit --use-npm --example "https://github.com/Superexpert/openai-assistant-starter-kit"
 ```
 
+In your new folder, run the following command to get all of your npm packages:
+
+```
+npm install
+```
+
 Second, ensure that you have configured an OpenAI API Key on your computer. You can run the following command from Terminal in MacOS:
 
 ```bash
