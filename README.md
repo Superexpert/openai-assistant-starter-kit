@@ -57,7 +57,6 @@ Next, you need to add your Assistant Id to the Starter Kit. Open the app/page.ts
 <OpenAIAssistant 
     assistantId="asst_gx3Htc0gLVNlpBQKLoefkXZZ"
     greeting="I am a helpful chat assistant. How can I help you?"
-    messageLimit={10}
 />
 ```
 
