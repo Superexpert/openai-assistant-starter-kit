@@ -1,50 +1,67 @@
 'use client'
-import {useState} from "react";
-import {AiOutlineUser, AiOutlineRobot, AiOutlineSend} from "react-icons/ai";
+
+import { AssistantStream } from 'openai/lib/AssistantStream';
+import { useState, useRef, useEffect } from "react";
+import { AiOutlineUser, AiOutlineRobot, AiOutlineSend } from "react-icons/ai";
 import Markdown from 'react-markdown';
 
 
+interface Message {
+    id: string;
+    role: string;
+    content: string;
+    createdAt: Date
+}
+
 export default function OpenAIAssistant({
-    assistantId,
+    assistantId = "",
     greeting = "I am a helpful chat assistant. How can I help you?",
-    messageLimit = 10,
 }) {
     const [isLoading, setIsLoading] = useState(false);
-    const [threadId, setThreadId] = useState();
+    const [threadId, setThreadId] = useState<string|null>(null);
     const [prompt, setPrompt] = useState("");
-    const [messages, setMessages] = useState([]);
-    const [streamingMessage, setStreamingMessage] = useState({
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [streamingMessage, setStreamingMessage] = useState<Message>({
+        id: "Thinking...",
         role: "assistant",
         content: "_Thinking..._",
+        createdAt: new Date(),
     });
+    const messageId = useRef(0);
 
     // set default greeting Message
     const greetingMessage = {
+        id: "greeting",
         role: "assistant",
         content: greeting,
+        createdAt: new Date(),
     };
 
-    async function handleSubmit(e) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         // clear streaming message
         setStreamingMessage({
+            id: "Thinking...",
             role: "assistant",
             content: "_Thinking..._",
+            createdAt: new Date(),
         });
 
         // add busy indicator
         setIsLoading(true);
 
         // add user message to list of messages
+        messageId.current ++;
         setMessages(
             [
                 ...messages, 
                 {
-                    id: "temp_user",
+                    id: messageId.current.toString(),
                     role: "user",
                     content: prompt,
-                }
+                    createdAt: new Date(),
+                } 
             ]
         );
         setPrompt("");
@@ -59,65 +76,56 @@ export default function OpenAIAssistant({
             }),
         });
 
-        let contentSnapshot = "";
-        let newThreadId;
 
-        // this code can be simplified when more browsers support async iteration
-        // see https://developer.mozilla.org/en-US/docs/Web/API/Streams_API/Using_readable_streams#consuming_a_fetch_using_asynchronous_iteration
-        let reader = response.body.getReader();
-        while (true) {
-            const { value, done } = await reader.read();
-    
-            if (done) {
-              break;
-            }
-    
-            // parse server sent event
-            const strChunk = new TextDecoder().decode(value).trim();
-
-            // split on newlines (to handle multiple JSON elements passed at once)
-            const strServerEvents = strChunk.split("\n");
-
-            // process each event
-            for (const strServerEvent of strServerEvents) {
-                const serverEvent = JSON.parse(strServerEvent);
-                // console.log(serverEvent);
-                switch (serverEvent.event) {
-                    // create new message
-                    case "thread.message.created":
-                        newThreadId = serverEvent.data.thread_id;
-                        setThreadId(serverEvent.data.thread_id);
-                        break;
-
-                    // update streaming message content
-                    case "thread.message.delta":
-                        contentSnapshot += serverEvent.data.delta.content[0].text.value;
-                        const newStreamingMessage = {
-                            ...streamingMessage,
-                            content: contentSnapshot,
-                        };
-                        setStreamingMessage(newStreamingMessage);
-                        break;
-                }
-            }
+        if (!response.body) {
+            return;
         }
+        const runner = AssistantStream.fromReadableStream(response.body);
 
-        // refetch all of the messages from the OpenAI Assistant thread
-        const messagesResponse = await fetch("/api/openai-assistant?" + new URLSearchParams({
-            threadId: newThreadId,
-            messageLimit: messageLimit,
-        }));
-        const allMessages = await messagesResponse.json();
-        setMessages(allMessages);
+        runner.on('messageCreated', (message) => {
+            setThreadId(message.thread_id);
+        });
 
-        // remove busy indicator
-        setIsLoading(false);
+        runner.on('textDelta', (_delta, contentSnapshot) => {
+            const newStreamingMessage = {
+                ...streamingMessage,
+                content: contentSnapshot.value,
+            };
+            setStreamingMessage(newStreamingMessage);
+        });
+
+
+        runner.on('messageDone', (message) => {
+            // get final message content
+            const finalContent =  message.content[0].type == "text" ? message.content[0].text.value : "";
+
+            // add assistant message to list of messages
+            messageId.current ++;
+            setMessages( (prevMessages) =>
+                [
+                    ...prevMessages, 
+                    {
+                        id: messageId.current.toString(),
+                        role: "assistant",
+                        content: finalContent,
+                        createdAt: new Date(),
+                    } 
+                ]
+            );
+
+            // remove busy indicator
+            setIsLoading(false);
+        });
+
+        runner.on('error', (error) => {
+            console.error(error);
+        });
     }
 
     // handles changes to the prompt input field
-    function handlePromptChange(e) {
+    function handlePromptChange(e: React.ChangeEvent<HTMLInputElement>) {
         setPrompt(e.target.value);
-      }
+    }
 
     return (
         <div className="flex flex-col bg-slate-200 shadow-md relative">
@@ -138,6 +146,7 @@ export default function OpenAIAssistant({
             <form onSubmit={handleSubmit} className="m-2 flex">
                 <input 
                     disabled={isLoading}
+                    autoFocus
                     className="border rounded w-full py-2 px-3 text-gray-70" 
                     onChange={handlePromptChange}
                     value={prompt}
@@ -160,9 +169,9 @@ export default function OpenAIAssistant({
     )
 }
 
-export function OpenAIAssistantMessage({message}) {
+export function OpenAIAssistantMessage({message}: {message:Message}) {
 
-    function displayRole(roleName) {
+    function displayRole(roleName:string) {
         switch (roleName) {
             case "user":
                 return <AiOutlineUser />;
